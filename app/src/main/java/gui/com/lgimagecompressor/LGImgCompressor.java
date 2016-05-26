@@ -164,7 +164,7 @@ public class LGImgCompressor {
 
         //将bitmap保存到指定路径
         FileOutputStream fos = null;
-        String filePath = getOutputFileName();
+        String filePath = getOutputFileName(srcImagePath);
         try {
             fos = new FileOutputStream(filePath);
             //包装缓冲流,提高写入速度
@@ -207,12 +207,13 @@ public class LGImgCompressor {
         return sampleSize;
     }
 
-    private String getOutputFileName() {
+    private String getOutputFileName(String srcFilePath) {
+        File srcFile = new File(srcFilePath);
         File file = new File(Environment.getExternalStorageDirectory().getPath(), "LGImgCompressor/Images");
         if (!file.exists()) {
             file.mkdirs();
         }
-        String uriSting = (file.getAbsolutePath() + File.separator + System.currentTimeMillis() + ".jpg");
+        String uriSting = (file.getAbsolutePath() + File.separator + srcFile.getName());
         return uriSting;
     }
 
