@@ -9,17 +9,27 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="gui.com.lgimagecompressor.MainActivity">
 
-    <Button
-        android:layout_width="match_parent"
+    <ImageView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Basic Compress Test"
-        android:id="@+id/basic_test"/>
+        android:id="@+id/image_view"
+        android:minWidth="50dp"
+        android:minHeight="50dp"
+        android:background="@android:color/darker_gray"
+        android:layout_centerHorizontal="true"/>
 
-    <Button
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="点击图片拍照"
+        android:layout_below="@+id/image_view"
+        android:layout_centerHorizontal="true"/>
+
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/from_service"
-        android:text="compress from service"
-        android:layout_below="@+id/basic_test"/>
+        android:id="@+id/image_info"
+        android:layout_alignParentBottom="true"
+        android:text="image info:"/>
 
 </RelativeLayout>

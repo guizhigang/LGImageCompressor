@@ -9,6 +9,8 @@ import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.provider.MediaStore;
 
 import java.io.BufferedOutputStream;
@@ -68,10 +70,11 @@ public class LGImgCompressor {
     }
 
     /**
+     * Can't compress a recycled bitmap
      * @param srcImageUri     原始图片的uri路径
      * @param outWidth        期望的输出图片的宽度
      * @param outHeight       期望的输出图片的高度
-     * @param maxFileSize 期望的输出图片的最大占用的存储空间
+     * @param maxFileSize       期望的输出图片的最大占用的存储空间
      * @return
      */
     public String compressImage(String srcImageUri, int outWidth, int outHeight, int maxFileSize) {
@@ -123,7 +126,8 @@ public class LGImgCompressor {
         }
         //生成最终输出的bitmap
         Bitmap actualOutBitmap = Bitmap.createScaledBitmap(scaledBitmap, (int) actualOutWidth, (int) actualOutHeight, true);
-        scaledBitmap.recycle();
+        if(actualOutBitmap != scaledBitmap)
+            scaledBitmap.recycle();
 
         //处理图片旋转问题
         ExifInterface exif = null;
@@ -143,6 +147,7 @@ public class LGImgCompressor {
                     actualOutBitmap.getWidth(), actualOutBitmap.getHeight(), matrix, true);
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
         }
 
         //进行有损压缩
@@ -217,32 +222,108 @@ public class LGImgCompressor {
         return uriSting;
     }
 
-    public void starCompress(String srcImageUri, int outWidth, int outHeight, int maxMemmorrySize) {
-        new CompressTask().execute(srcImageUri, "" + outWidth, "" + outHeight, "" + maxMemmorrySize);
+    public void starCompress(String srcImageUri, int outWidth, int outHeight, int maxFileSize) {
+        new CompressTask().execute(srcImageUri, "" + outWidth, "" + outHeight, "" + maxFileSize);
     }
 
     public void starCompressWithDefault(String srcImageUri) {
         new CompressTask().execute(srcImageUri, "" + DEFAULT_OUTWIDTH, "" + DEFAULT_OUTHEIGHT, "" + DEFAULT_MAXFILESIZE);
     }
 
+    public static class CompressResult implements Parcelable{
+        public static final int RESULT_OK = 0;
+        public static final int RESULT_ERROR = 1;
+        private int status = RESULT_OK;
+        private String srcPath;
+        private String outPath;
+
+        public CompressResult(){
+
+        }
+
+        protected CompressResult(Parcel in) {
+            status = in.readInt();
+            srcPath = in.readString();
+            outPath = in.readString();
+        }
+
+        public static final Creator<CompressResult> CREATOR = new Creator<CompressResult>() {
+            @Override
+            public CompressResult createFromParcel(Parcel in) {
+                return new CompressResult(in);
+            }
+
+            @Override
+            public CompressResult[] newArray(int size) {
+                return new CompressResult[size];
+            }
+        };
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeInt(status);
+            dest.writeString(srcPath);
+            dest.writeString(outPath);
+        }
+
+        public int getStatus() {
+            return status;
+        }
+
+        public void setStatus(int status) {
+            this.status = status;
+        }
+
+        public String getSrcPath() {
+            return srcPath;
+        }
+
+        public void setSrcPath(String srcPath) {
+            this.srcPath = srcPath;
+        }
+
+        public String getOutPath() {
+            return outPath;
+        }
+
+        public void setOutPath(String outPath) {
+            this.outPath = outPath;
+        }
+    }
     /**
      * 压缩结果回到监听类
      */
     public interface CompressListener {
         void onCompressStart();
 
-        void onCompressEnd(String imageOutPath);
+        void onCompressEnd(CompressResult imageOutPath);
     }
 
-    private class CompressTask extends AsyncTask<String, Void, String> {
+    private class CompressTask extends AsyncTask<String, Void, CompressResult> {
 
         @Override
-        protected String doInBackground(String... params) {
+        protected CompressResult doInBackground(String... params) {
             String path = params[0];
             int outWidth = Integer.parseInt(params[1]);
             int outHeight = Integer.parseInt(params[2]);
-            int maxMemmorrySize = Integer.parseInt(params[3]);
-            return compressImage(path, outWidth, outHeight, maxMemmorrySize);
+            int maxFileSize = Integer.parseInt(params[3]);
+            CompressResult compressResult = new CompressResult();
+            String outPutPath = null;
+            try {
+                outPutPath = compressImage(path, outWidth, outHeight, maxFileSize);
+            }catch (Exception e){
+            }
+            compressResult.setSrcPath(path);
+            compressResult.setOutPath(outPutPath);
+            if(outPutPath == null){
+                compressResult.setStatus(CompressResult.RESULT_ERROR);
+            }
+            return compressResult;
         }
 
         @Override
@@ -253,9 +334,9 @@ public class LGImgCompressor {
         }
 
         @Override
-        protected void onPostExecute(String imageOutPath) {
+        protected void onPostExecute(CompressResult compressResult) {
             if (compressListener != null) {
-                compressListener.onCompressEnd(imageOutPath);
+                compressListener.onCompressEnd(compressResult);
             }
         }
     }

@@ -7,19 +7,30 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="gui.com.lgimagecompressor.MainActivity">
+    tools:context=".ServiceCompressActivity">
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/intent_service"
+        android:text="compress from intentService"/>
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Basic Compress Test"
-        android:id="@+id/basic_test"/>
-
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/from_service"
+        android:id="@+id/service"
         android:text="compress from service"
-        android:layout_below="@+id/basic_test"/>
+        android:layout_below="@+id/intent_service"/>
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="test"
+        android:layout_below="@+id/service"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:id="@+id/compress_info"
+        android:text="info:"/>
 </RelativeLayout>
